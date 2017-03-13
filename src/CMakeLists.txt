@@ -1,7 +1,8 @@
 rock_library(dsp1760
-    SOURCES Dummy.cpp
-    HEADERS Dummy.hpp)
+    SOURCES dsp1760.cpp
+    HEADERS dsp1760.hpp
+	DEPS_PKGCONFIG iodrivers_base)
 
-rock_executable(dsp1760_bin Main.cpp
+rock_executable(dsp1760_bin main.cpp
     DEPS dsp1760)
 

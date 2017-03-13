@@ -1,55 +1,16 @@
-dsp1760
-=============
-DSP1760 library
+# DSP1760 library
 
-Library to parse the DSP1760 laser gyroscope packets
+Library to parse the [DSP1760 optical gyroscope](http://www.kvh.com/Military-and-Government/Gyros-and-Inertial-Systems-and-Compasses/Gyros-and-IMUs-and-INS/Fiber-Optic-Gyros/DSP-1760.aspx) packets within the ROCK framework.
 
-License
--------
-dummy-license
+**Author: [Karl Kangur](mailto:karl.kangur@esa.int "Contact the author"),  
+Contact: [Martin Azkarate](mailto:Martin.Azkarate@esa.int "Contact the maintainer"),  
+Affiliation: Automation and Robotics Laboratories, ESTEC, ESA**
 
-Installation
-------------
-The easiest way to build and install this package is to use Rock's build system.
-See [this page](http://rock-robotics.org/stable/documentation/installation.html)
-on how to install Rock.
+## Usage
 
-However, if you feel that it's too heavy for your needs, Rock aims at having
-most of its "library" packages (such as this one) to follow best practices. See
-[this page](http://rock-robotics.org/stable/documentation/packages/outside_of_rock.html)
-for installation instructions outside of Rock.
+### Building
 
-Rock CMake Macros
------------------
+Clone the library to `drivers/dsp1760` and add it to the ROCK manifest. Finally call `autoproj build`.
 
-This package uses a set of CMake helper shipped as the Rock CMake macros.
-Documentations is available on [this page](http://rock-robotics.org/stable/documentation/packages/cmake_macros.html).
+To use it within the ROCK framework use the corresponding component.
 
-Rock Standard Layout
---------------------
-
-This directory structure follows some simple rules, to allow for generic build
-processes and simplify reuse of this project. Following these rules ensures that
-the Rock CMake macros automatically handle the project's build process and
-install setup properly.
-
-STRUCTURE
--- src/ 
-	Contains all header (*.h/*.hpp) and source files
--- build/
-	The target directory for the build process, temporary content
--- bindings/
-	Language bindings for this package, e.g. put into subfolders such as
-   |-- ruby/ 
-        Ruby language bindings
--- viz/
-        Source files for a vizkit plugin / widget related to this library 
--- resources/
-	General resources such as images that are needed by the program
--- configuration/
-	Configuration files for running the program
--- external/
-	When including software that needs a non standard installation process, or one that can be
-	easily embedded include the external software directly here
--- doc/
-	should contain the existing doxygen file: doxygen.conf

@@ -22,6 +22,26 @@
 
 namespace dsp1760
 {
+    enum CONFMODE
+    {
+        OFF = 0,
+        ON = 1
+    };
+    
+    enum DATARATE
+    {
+        DR1 = 1,
+        DR5 = 5,
+        DR10 = 10,
+        DR25 = 25,
+        DR50 = 50,
+        DR100 = 100,
+        DR250 = 250,
+        DR500 = 500,
+        DR750 = 750,
+        DR1000 = 1000
+    };
+    
     class DSP1760driver: public iodrivers_base::Driver
     {
     public:
@@ -30,11 +50,17 @@ namespace dsp1760
         bool update(float &delta);
         int getFileDescriptor();
         int getIndex();
+        bool setDataRate(int rate);
+        bool setDataRate(DATARATE rate);
         
     private:
         static const int MAX_PACKET_SIZE = 512;
         virtual int extractPacket(uint8_t const* buffer, size_t buffer_size) const;
+        bool suppress_invalid_messages;
         int packet_index;
+        bool configurationMode(CONFMODE mode);
+        DATARATE datarate;
+        CONFMODE config_mode;
     };
 }
 

@@ -16,7 +16,9 @@ using namespace dsp1760;
 DSP1760driver::DSP1760driver():
     Driver(MAX_PACKET_SIZE)
 {
-
+    // Default data rate is 1000Hz
+    datarate = DR1000;
+    suppress_invalid_messages = false;
 }
 
 DSP1760driver::~DSP1760driver()
@@ -37,15 +39,21 @@ bool DSP1760driver::update(float &delta)
 {
     uint8_t buffer[MAX_PACKET_SIZE];
     static uint8_t sequence = 0xff;
-    static uint8_t status;
+    
+    // Do not process anything when the configuration mode is enabled
+    if(config_mode == ON)
+    {
+        sequence = 0xff;
+        return false;
+    }
     
     try
     {
-        // Read the packet in the local buffer. Timeout and first byte timeouts are equal: 100ms
+        // Read the packet in the local buffer. Timeout and first byte timeouts are equal: 2000ms
         // If set to 0ms it will call the timeout error all the time
         // Also if the buffer size is smaller than the driver buffer size then the following error is thrown:
         // FileDescriptorActivity: timeout in select()
-        readPacket(buffer, MAX_PACKET_SIZE, 100, 100);
+        readPacket(buffer, MAX_PACKET_SIZE, 2000, 2000);
         
         // Count sequence to check for missing packets, byte 29 increments by
         // one after every new reading and loops back to 0 at 127
@@ -59,12 +67,17 @@ bool DSP1760driver::update(float &delta)
         // Update the sequence number
         sequence = packet_index;
         
-        status = buffer[DSP1760_STATUS];
-        if(((status >> 2) & 1) == 0)
+        bool valid = ((buffer[DSP1760_STATUS] >> 2) & 1);
+        if(!valid && !suppress_invalid_messages)
         {
             // Gyro Z status is invalid
             cout << "DSP1760driver: Invalid rotational value" << endl;
             return false;
+        }
+        else if(valid && suppress_invalid_messages)
+        {
+            // This is needed because after a data rate change there are systematically 2 invalid messages
+            suppress_invalid_messages = false;
         }
         
         // Z rotational data is contained in 4 bytes from byte 12 to 15, big endian format
@@ -83,6 +96,53 @@ bool DSP1760driver::update(float &delta)
 int DSP1760driver::getIndex()
 {
     return packet_index;
+}
+
+bool DSP1760driver::configurationMode(CONFMODE mode)
+{
+    config_mode = mode;
+    
+	char buffer[10];
+	sprintf(buffer, "=config,%d\n", mode);
+    return writePacket((uint8_t*)buffer, sizeof(buffer) / sizeof(buffer[0]), 100);
+}
+
+bool DSP1760driver::setDataRate(DATARATE rate)
+{
+    setDataRate((int)rate);
+}
+
+bool DSP1760driver::setDataRate(int rate)
+{
+    switch(rate)
+    {
+    case 1: datarate = DR1; break;
+    case 5: datarate = DR5; break;
+    case 10: datarate = DR10; break;
+    case 25: datarate = DR25; break;
+    case 50: datarate = DR50; break;
+    case 100: datarate = DR100; break;
+    case 250: datarate = DR250; break;
+    case 500: datarate = DR500; break;
+    case 750: datarate = DR750; break;
+    case 1000: datarate = DR1000; break;
+    default:
+        cout << "DSP1760driver: Data rate not valid" << endl;
+        return false;
+    }
+    
+    configurationMode(ON);
+    
+	char buffer[16];
+	sprintf(buffer, "=dr,%d\n", datarate);
+    bool ret = writePacket((uint8_t*)buffer, sizeof(buffer) / sizeof(buffer[0]), 100);
+    
+    configurationMode(OFF);
+    
+    // Changing the data rate invalidates the 2 next messages, suppress the warning
+    suppress_invalid_messages = true;
+    
+    return ret;
 }
 
 // Virtual method, must be redefined to process custom packet

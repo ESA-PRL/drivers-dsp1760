@@ -22,6 +22,11 @@ int main(int argc, char** argv)
         std::cout << "Could not open device on port " << argv[1] << std::endl;    
     }
     
+    if(!device.setDataRate(dsp1760::DR10))
+    {
+        std::cout << "Could not set data rate" << std::endl;  
+    }
+    
     float delta;
     while(true)
     {

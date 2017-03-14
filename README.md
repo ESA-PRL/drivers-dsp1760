@@ -14,3 +14,9 @@ Clone the library to `drivers/dsp1760` and add it to the ROCK manifest. Finally 
 
 To use it within the ROCK framework use the corresponding component.
 
+### Unit test
+
+A test script is under `src/main.cpp`. It is built and stored under `build/dsp1760_test`. To run it call the executable with the device as argument:
+
+    ./build/dsp1760_test /dev/ttyUSBx
+

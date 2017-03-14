@@ -1,3 +1,9 @@
+/*
+ * File:   main.cpp
+ * Author: Karl Kangur, ESA/ESTEC
+ * Date:   2017-03-14
+ */
+
 #include <iostream>
 #include "dsp1760.hpp"
 
@@ -21,7 +27,7 @@ int main(int argc, char** argv)
     {
 		if(device.update(delta))
 		{
-			printf("Delta: %f\n", delta);
+			printf("Delta: %f, packet: %d\n", delta, device.getIndex());
 		}
 	}
 

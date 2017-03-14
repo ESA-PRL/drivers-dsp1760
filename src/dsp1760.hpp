@@ -29,10 +29,12 @@ namespace dsp1760
         ~DSP1760driver();
         bool update(float &delta);
         int getFileDescriptor();
+        int getIndex();
         
     private:
-        static const int MAX_PACKET_SIZE = 256;
+        static const int MAX_PACKET_SIZE = 512;
         virtual int extractPacket(uint8_t const* buffer, size_t buffer_size) const;
+        int packet_index;
     };
 }
 

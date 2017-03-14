@@ -14,14 +14,17 @@ using namespace dsp1760;
 
 // Generic driver internal buffer size
 DSP1760driver::DSP1760driver():
-    Driver(512)
+    Driver(MAX_PACKET_SIZE)
 {
 
 }
 
 DSP1760driver::~DSP1760driver()
 {
-
+    if(isValid())
+    {
+        close();
+    }
 }
 
 int DSP1760driver::getFileDescriptor()
@@ -32,9 +35,8 @@ int DSP1760driver::getFileDescriptor()
 
 bool DSP1760driver::update(float &delta)
 {
-    // Define local device buffer as big as the generic driver buffer (512 in this case)
-    uint8_t buffer[Driver::MAX_PACKET_SIZE];
-    static uint8_t sequence_local = 0xff;
+    uint8_t buffer[MAX_PACKET_SIZE];
+    static uint8_t sequence = 0xff;
     static uint8_t status;
     
     try
@@ -43,19 +45,19 @@ bool DSP1760driver::update(float &delta)
         // If set to 0ms it will call the timeout error all the time
         // Also if the buffer size is smaller than the driver buffer size then the following error is thrown:
         // FileDescriptorActivity: timeout in select()
-        readPacket(buffer, Driver::MAX_PACKET_SIZE, 100, 100);
+        readPacket(buffer, MAX_PACKET_SIZE, 100, 100);
         
         // Count sequence to check for missing packets, byte 29 increments by
         // one after every new reading and loops back to 0 at 127
-        uint8_t sequence = buffer[DSP1760_SEQUENCE];
-        if(sequence_local != 0xff && ((sequence != 0 && sequence_local + 1 != sequence) || (sequence == 0 && sequence_local != 127)))
+        packet_index = buffer[DSP1760_SEQUENCE];
+        if(sequence != 0xff && ((packet_index != 0 && sequence + 1 != packet_index) || (packet_index == 0 && sequence != 127)))
         {
             cout << "DSP1760driver: Value out of sequence" << endl;
-            sequence_local = 0xff;
+            sequence = 0xff;
             return false;
         }
         // Update the sequence number
-        sequence_local = sequence;
+        sequence = packet_index;
         
         status = buffer[DSP1760_STATUS];
         if(((status >> 2) & 1) == 0)
@@ -76,6 +78,11 @@ bool DSP1760driver::update(float &delta)
         cout << "DSP1760driver: Timeout error" << endl;
         return false;
     }
+}
+
+int DSP1760driver::getIndex()
+{
+    return packet_index;
 }
 
 // Virtual method, must be redefined to process custom packet

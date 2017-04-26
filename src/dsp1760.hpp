@@ -48,10 +48,12 @@ namespace dsp1760
         DSP1760driver();
         ~DSP1760driver();
         bool update(float &delta);
+        bool update(float &delta, float &temperature);
         int getFileDescriptor();
         int getIndex();
         bool setDataRate(int rate);
         bool setDataRate(DATARATE rate);
+        bool setTemperatureDecimal(bool isDecimal);
         
     private:
         static const int MAX_PACKET_SIZE = 512;
@@ -61,6 +63,7 @@ namespace dsp1760
         bool configurationMode(CONFMODE mode);
         DATARATE datarate;
         CONFMODE config_mode;
+	float temperature_factor;
     };
 }
 

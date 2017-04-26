@@ -37,6 +37,12 @@ int DSP1760driver::getFileDescriptor()
 
 bool DSP1760driver::update(float &delta)
 {
+     float temperature;
+     return update(delta, temperature);
+}
+
+bool DSP1760driver::update(float &delta, float &temperature)
+{
     uint8_t buffer[MAX_PACKET_SIZE];
     static uint8_t sequence = 0xff;
     
@@ -83,7 +89,12 @@ bool DSP1760driver::update(float &delta)
         // Z rotational data is contained in 4 bytes from byte 12 to 15, big endian format
         uint8_t rotation_z[4] = {buffer[DSP1760_ROT_Z+3], buffer[DSP1760_ROT_Z+2], buffer[DSP1760_ROT_Z+1], buffer[DSP1760_ROT_Z]};
         memcpy(&delta, &rotation_z, sizeof(rotation_z));
-        
+
+        uint8_t temperature_read[2] = {buffer[DSP1760_TEMP+1], buffer[DSP1760_TEMP]};
+        int16_t temperature_int;
+	memcpy(&temperature_int, &temperature_read, sizeof(temperature_read));
+	temperature = ((float)temperature_int)*temperature_factor;
+
         return true;
     }
     catch(int timeout_error)
@@ -133,8 +144,8 @@ bool DSP1760driver::setDataRate(int rate)
     
     configurationMode(ON);
     
-	char buffer[16];
-	sprintf(buffer, "=dr,%d\n", datarate);
+    char buffer[16];
+    sprintf(buffer, "=dr,%d\n", datarate);
     bool ret = writePacket((uint8_t*)buffer, sizeof(buffer) / sizeof(buffer[0]), 100);
     
     configurationMode(OFF);
@@ -144,6 +155,32 @@ bool DSP1760driver::setDataRate(int rate)
     
     return ret;
 }
+
+bool DSP1760driver::setTemperatureDecimal(bool isDecimal)
+{
+    configurationMode(ON);
+    
+    char buffer[32];
+    if(isDecimal)
+    {
+        temperature_factor = 0.01;
+        sprintf(buffer, "=tempunits,%s\n", "C_100");
+    }
+    else
+    {
+        temperature_factor = 1.0;
+        sprintf(buffer, "=tempunits,%s\n", "C");
+    }
+    bool ret = writePacket((uint8_t*)buffer, sizeof(buffer) / sizeof(buffer[0]), 100);
+    
+    configurationMode(OFF);
+    
+    // Changing the data rate invalidates the 2 next messages, suppress the warning
+    suppress_invalid_messages = true;
+ 
+    return ret;
+}
+
 
 // Virtual method, must be redefined to process custom packet
 int DSP1760driver::extractPacket(uint8_t const* buffer, size_t buffer_size) const

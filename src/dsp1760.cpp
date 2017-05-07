@@ -105,9 +105,9 @@ bool DSP1760driver::update(float &delta, float &temperature, uint8_t &sequence_o
 
         return true;
     }
-    catch(int timeout_error)
+    catch(iodrivers_base::TimeoutError& e)
     {
-        cout << "DSP1760driver: Timeout error" << endl;
+        cerr << "DSP1760driver - TimeoutError - " << e.what() << endl;
         return false;
     }
 }

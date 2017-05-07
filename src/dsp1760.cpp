@@ -92,8 +92,8 @@ bool DSP1760driver::update(float &delta, float &temperature)
 
         uint8_t temperature_read[2] = {buffer[DSP1760_TEMP+1], buffer[DSP1760_TEMP]};
         int16_t temperature_int;
-	memcpy(&temperature_int, &temperature_read, sizeof(temperature_read));
-	temperature = ((float)temperature_int)*temperature_factor;
+        memcpy(&temperature_int, &temperature_read, sizeof(temperature_read));
+        temperature = ((float)temperature_int)*temperature_factor;
 
         return true;
     }
@@ -181,6 +181,36 @@ bool DSP1760driver::setTemperatureDecimal(bool isDecimal)
     return ret;
 }
 
+// Change the angular (gyro) data format
+bool DSP1760driver::setAngularDataFormat(FORMAT format)
+{
+    configurationMode(ON);
+    
+    char buffer[32];
+    if(format == DELTA)
+    {
+        // radians or degrees
+        sprintf(buffer, "=rotfmt,delta\n");
+    }
+    else if(format == RATE)
+    {
+        // radians or degrees per second
+        sprintf(buffer, "=rotfmt,rate\n");
+    }
+    else if(format == RESET)
+    {
+        // Resets to default (delta)
+        sprintf(buffer, "=rotfmt,reset\n");
+    }
+    bool ret = writePacket((uint8_t*)buffer, sizeof(buffer) / sizeof(buffer[0]), 100);
+    
+    configurationMode(OFF);
+    
+    // Changing the data rate invalidates the 2 next messages, suppress the warning
+    suppress_invalid_messages = true;
+ 
+    return ret;
+}
 
 // Virtual method, must be redefined to process custom packet
 int DSP1760driver::extractPacket(uint8_t const* buffer, size_t buffer_size) const

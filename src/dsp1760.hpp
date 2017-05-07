@@ -42,6 +42,13 @@ namespace dsp1760
         DR1000 = 1000
     };
     
+    enum FORMAT
+    {
+        DELTA,
+        RATE,
+        RESET
+    };
+    
     class DSP1760driver: public iodrivers_base::Driver
     {
     public:
@@ -54,6 +61,7 @@ namespace dsp1760
         bool setDataRate(int rate);
         bool setDataRate(DATARATE rate);
         bool setTemperatureDecimal(bool isDecimal);
+        bool setAngularDataFormat(FORMAT format);
         
     private:
         static const int MAX_PACKET_SIZE = 512;

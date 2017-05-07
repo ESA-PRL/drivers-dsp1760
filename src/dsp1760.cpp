@@ -19,6 +19,7 @@ DSP1760driver::DSP1760driver():
     // Default data rate is 1000Hz
     datarate = DR1000;
     suppress_invalid_messages = false;
+    sequence = 0xff;
 }
 
 DSP1760driver::~DSP1760driver()
@@ -43,13 +44,19 @@ bool DSP1760driver::update(float &delta)
 
 bool DSP1760driver::update(float &delta, float &temperature)
 {
+     uint8_t sequence;
+     return update(delta, temperature, sequence);
+}
+
+bool DSP1760driver::update(float &delta, float &temperature, uint8_t &sequence_out)
+{
     uint8_t buffer[MAX_PACKET_SIZE];
-    static uint8_t sequence = 0xff;
     
     // Do not process anything when the configuration mode is enabled
     if(config_mode == ON)
     {
         sequence = 0xff;
+        sequence_out = sequence;
         return false;
     }
     
@@ -72,6 +79,7 @@ bool DSP1760driver::update(float &delta, float &temperature)
         }
         // Update the sequence number
         sequence = packet_index;
+        sequence_out = sequence;
         
         bool valid = ((buffer[DSP1760_STATUS] >> 2) & 1);
         if(!valid && !suppress_invalid_messages)

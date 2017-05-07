@@ -56,6 +56,7 @@ namespace dsp1760
         ~DSP1760driver();
         bool update(float &delta);
         bool update(float &delta, float &temperature);
+        bool update(float &delta, float &temperature, uint8_t &sequence_out);
         int getFileDescriptor();
         int getIndex();
         bool setDataRate(int rate);
@@ -71,7 +72,8 @@ namespace dsp1760
         bool configurationMode(CONFMODE mode);
         DATARATE datarate;
         CONFMODE config_mode;
-	float temperature_factor;
+        float temperature_factor;
+        uint8_t sequence;
     };
 }
 
